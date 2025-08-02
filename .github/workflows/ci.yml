@@ -45,7 +45,7 @@ jobs:
         
     - name: Update Kubernetes Deployment
       env:
-        GITHUB_TOKEN: ${{ secrets.K8S_REPO_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.K8S_GIT_TOKEN }}
       run: |
         echo "=== Cloning k8s config repository ==="
         git clone https://${GITHUB_TOKEN}@github.com/1979447992/k8s-config-repo.git
@@ -73,3 +73,4 @@ jobs:
         git push https://${GITHUB_TOKEN}@github.com/1979447992/k8s-config-repo.git main
         
         echo "=== Kubernetes deployment updated successfully ==="
+
