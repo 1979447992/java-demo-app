@@ -4,10 +4,10 @@ on:
   push:
     branches: [ main ]
 
-
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    
     steps:
     - uses: actions/checkout@v3
     
@@ -18,34 +18,52 @@ jobs:
         distribution: 'temurin'
     
     - name: Build with Maven
-      run: mvn clean package -DskipTests
+      run: mvn clean package
     
-    - name: Build Docker image
+    - name: Configure Docker for insecure registry
       run: |
-        IMAGE_TAG=47.83.206.116:30002/library/demo-app:$(date +%Y%m%d-%H%M%S)
-        docker build -t $IMAGE_TAG .
-        echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+        # 停止 Docker 服务
+        sudo systemctl stop docker
+        
+        # 创建或更新 daemon.json
+        sudo mkdir -p /etc/docker
+        echo '{
+          "insecure-registries": ["47.83.206.116:30002"]
+        }' | sudo tee /etc/docker/daemon.json
+        
+        # 启动 Docker 服务
+        sudo systemctl start docker
+        
+        # 等待 Docker 完全启动
+        sleep 10
+        
+        # 验证配置
+        sudo systemctl status docker
+        docker info | grep -A 10 "Insecure Registries"
     
-    - name: Login to Harbor Registry
+    - name: Configure Docker and Login to Harbor
       run: |
-        echo "${{ secrets.HARBOR_PASSWORD }}" | docker login http://47.83.206.116:30002 -u "${{ secrets.HARBOR_USERNAME }}" --password-stdin
-
+        echo "=== Configure insecure registry ==="
+        sudo mkdir -p /etc/docker
+        echo '{"insecure-registries":["47.83.206.116:30002"]}' | sudo tee /etc/docker/daemon.json
+        
+        echo "=== Restart Docker ==="
+        sudo systemctl restart docker
+        sleep 20
+        
+        echo "=== Verify Docker configuration ==="
+        docker info | grep -A 5 "Insecure Registries" || echo "No insecure registries found"
+        
+        echo "=== Test Harbor connectivity ==="
+        curl -f http://47.83.206.116:30002/v2/ || echo "Expected unauthorized response"
+        
+        echo "=== Login to Harbor ==="
+        echo "${{ secrets.HARBOR_PASSWORD }}" | docker login 47.83.206.116:30002 -u "${{ secrets.HARBOR_USERNAME }}" --password-stdin
+        
+        echo "=== Verify login success ==="
+        docker info | grep -A 10 "Registry"
+    
     - name: Build and Push Docker Image
       run: |
-        docker build -t http://47.83.206.116:30002/library/demo-app:${{ github.sha }} .
-        docker push http://47.83.206.116:30002/library/demo-app:${{ github.sha }}
-    
-    - name: Update deployment config
-      run: |
-        git clone https://github.com/1979447992/k8s-config-repo.git
-        cd k8s-config-repo
-        sed -i "s|image: 47.83.206.116:30002/library/demo-app:.*|image: $IMAGE_TAG|g" demo-app/deployment.yaml
-        git config user.name "GitHub Actions"
-        git config user.email "actions@github.com"
-        git add .
-        git commit -m "Update image to $IMAGE_TAG"
-        git push https://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@github.com/1979447992/k8s-config-repo.git
-
-
-
-
+        docker build -t 47.83.206.116:30002/library/demo-app:${{ github.sha }} .
+        docker push 47.83.206.116:30002/library/demo-app:${{ github.sha }}
