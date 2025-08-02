@@ -41,36 +41,20 @@ jobs:
         sudo systemctl status docker
         docker info | grep -A 10 "Insecure Registries"
     
-    - name: Configure Docker and Login to Harbor
+    - name: Setup Harbor and Build
       run: |
-        echo "=== Configure insecure registry ==="
+        # Configure Docker for insecure registry
         sudo mkdir -p /etc/docker
         echo '{"insecure-registries":["47.83.206.116:30002"]}' | sudo tee /etc/docker/daemon.json
-        
-        echo "=== Restart Docker ==="
         sudo systemctl restart docker
         sleep 20
         
-        echo "=== Verify Docker configuration ==="
-        docker info | grep -A 5 "Insecure Registries" || echo "No insecure registries found"
-        
-        echo "=== Test Harbor connectivity ==="
-        curl -f http://47.83.206.116:30002/v2/ || echo "Expected unauthorized response"
-        
-        echo "=== Login to Harbor ==="
+        # Login to Harbor
         echo "${{ secrets.HARBOR_PASSWORD }}" | docker login 47.83.206.116:30002 -u "${{ secrets.HARBOR_USERNAME }}" --password-stdin
         
-        echo "=== Verify login success ==="
-        docker info | grep -A 10 "Registry"
-    
-    - name: Build and Push Docker Image
-      run: |
+        # Build and push image
         docker build -t 47.83.206.116:30002/library/demo-app:${{ github.sha }} .
         docker push 47.83.206.116:30002/library/demo-app:${{ github.sha }}
-    
-    - name: Build and Push Docker Image
-      run: |
-        docker build -t 47.83.206.116:30002/library/demo-app:${{ github.sha }} .
-        docker push 47.83.206.116:30002/library/demo-app:${{ github.sha }}
+
 
 
