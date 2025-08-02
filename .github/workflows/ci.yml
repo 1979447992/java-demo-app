@@ -27,9 +27,11 @@ jobs:
     
     - name: Push to Harbor
       run: |
-        #        docker login 47.83.206.116:30002 -u admin -p Harbor12345
-        docker login --insecure-registry 47.83.206.116:30002 -u admin -p Harbor12345
+        echo "${{ secrets.HARBOR_PASSWORD }}" | docker login --username "${{ secrets.HARBOR_USERNAME }}" --password-stdin --insecure-registry 47.83.206.116:30002
         docker push $IMAGE_TAG
+        #        docker login 47.83.206.116:30002 -u admin -p Harbor12345
+        # docker login --insecure-registry 47.83.206.116:30002 -u admin -p Harbor12345
+        # docker push $IMAGE_TAG
     
     - name: Update deployment config
       run: |
@@ -41,5 +43,6 @@ jobs:
         git add .
         git commit -m "Update image to $IMAGE_TAG"
         git push https://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@github.com/1979447992/k8s-config-repo.git
+
 
 
