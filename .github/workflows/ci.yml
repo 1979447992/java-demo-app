@@ -21,7 +21,7 @@ jobs:
     
     - name: Build Docker image
       run: |
-        IMAGE_TAG=your-server-ip:30002/library/demo-app:$(date +%Y%m%d-%H%M%S)
+        IMAGE_TAG=47.83.206.116:30002/library/demo-app:$(date +%Y%m%d-%H%M%S)
         docker build -t $IMAGE_TAG .
         echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
     
@@ -40,3 +40,4 @@ jobs:
         git add .
         git commit -m "Update image to $IMAGE_TAG"
         git push https://your-token@github.com/your-username/k8s-config-repo.git
+
