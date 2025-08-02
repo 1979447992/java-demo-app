@@ -76,14 +76,30 @@ jobs:
 
     - name: Trigger ArgoCD Refresh (Simple)
       run: |
-        echo "=== 触发 ArgoCD 立即刷新 ==="
+        echo "=== 调试 ArgoCD 连接 ==="
         
-        # 方法1：通过 ArgoCD API 刷新
-        curl -s -X GET "http://47.83.206.116:30443/api/v1/applications/demo-app/refresh" \
-          -H "Authorization: Bearer $(curl -s -X POST \
-            -H 'Content-Type: application/json' \
-            -d '{\"username\":\"admin\",\"password\":\"${{ secrets.ARGOCD_PASSWORD }}\"}' \
-            'http://47.83.206.116:30443/api/v1/session' | jq -r .token)" || echo "API 刷新失败，依赖自动扫描"
+        # 测试连接
+        echo "1. 测试 ArgoCD 健康状态："
+        curl -s -k "https://47.83.206.116:30443/healthz" || echo "健康检查失败"
+        
+        # 测试登录
+        echo "2. 测试登录："
+        LOGIN_RESPONSE=$(curl -s -k -X POST \
+          -H 'Content-Type: application/json' \
+          -d "{\"username\":\"admin\",\"password\":\"${{ secrets.ARGOCD_PASSWORD }}\"}" \
+          'https://47.83.206.116:30443/api/v1/session')
+        
+        echo "登录响应: $LOGIN_RESPONSE"
+        
+        # 如果登录成功，尝试刷新
+        TOKEN=$(echo "$LOGIN_RESPONSE" | jq -r .token 2>/dev/null)
+        if [ "$TOKEN" != "null" ] && [ -n "$TOKEN" ]; then
+          echo "3. 尝试刷新应用："
+          curl -s -k -X POST \
+            -H "Authorization: Bearer $TOKEN" \
+            "https://47.83.206.116:30443/api/v1/applications/demo-app/refresh"
+        fi
     
+
 
 
