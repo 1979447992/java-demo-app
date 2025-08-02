@@ -39,6 +39,6 @@ jobs:
         git config user.email "actions@github.com"
         git add .
         git commit -m "Update image to $IMAGE_TAG"
-        git push https://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@github.com/your-username/k8s-config-repo.git
+        git push https://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@github.com/1979447992/k8s-config-repo.git
 
 
