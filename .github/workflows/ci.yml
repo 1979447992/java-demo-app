@@ -1,9 +1,7 @@
 name: CI/CD Pipeline
-
 on:
   push:
     branches: [ main ]
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -11,18 +9,15 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    # 可选：如果你需要 Java 编译，保留这部分
     - name: Set up JDK 11
       uses: actions/setup-java@v3
       with:
         java-version: '11'
         distribution: 'temurin'
     
-    # 可选：如果你需要 Maven 构建，保留这部分
     - name: Build with Maven
       run: mvn clean package
     
-    # ========== 必需部分：Docker 配置和登录 ==========
     - name: Configure Docker and Login to Harbor
       run: |
         echo "=== Configure insecure registry ==="
@@ -37,8 +32,7 @@ jobs:
         echo "${{ secrets.HARBOR_PASSWORD }}" | docker login 47.83.206.116:30002 -u "${{ secrets.HARBOR_USERNAME }}" --password-stdin
         
         echo "=== Docker setup completed ==="
-
-    # ========== 必需部分：构建和推送镜像 ==========
+        
     - name: Build and Push Docker Image
       run: |
         echo "=== Building Docker image ==="
@@ -48,9 +42,10 @@ jobs:
         docker push 47.83.206.116:30002/library/demo-app:${{ github.sha }}
         
         echo "=== Image pushed: 47.83.206.116:30002/library/demo-app:${{ github.sha }} ==="
-
-    # ========== 必需部分：更新 Kubernetes 部署文件 ==========
+        
     - name: Update Kubernetes Deployment
+      env:
+        GITHUB_TOKEN: ${{ secrets.K8S_REPO_TOKEN }}
       run: |
         echo "=== Cloning k8s config repository ==="
         git clone https://${GITHUB_TOKEN}@github.com/1979447992/k8s-config-repo.git
@@ -64,21 +59,17 @@ jobs:
         cat demo-app/deployment.yaml | grep -A 2 -B 2 "image:"
         
         echo "=== Updating image tag in deployment.yaml ==="
-        sed -i "s|image: 47.83.206.116:30002/library/demo-app:.*|image: 47.83.206.116:30002/library/demo-app:dd96a51f3431f1b61ba92a954b247c6d59ba5060|g" demo-app/deployment.yaml
+        # 🔥 关键修改：使用 ${{ github.sha }} 而不是硬编码的hash
+        sed -i "s|image: 47.83.206.116:30002/library/demo-app:.*|image: 47.83.206.116:30002/library/demo-app:${{ github.sha }}|g" demo-app/deployment.yaml
         
         echo "=== Updated deployment.yaml content ==="
         cat demo-app/deployment.yaml | grep -A 2 -B 2 "image:"
         
         echo "=== Committing changes ==="
         git add .
-        git commit -m "Update demo-app image to dd96a51f3431f1b61ba92a954b247c6d59ba5060"
+        git commit -m "Update demo-app image to ${{ github.sha }}"
         
         echo "=== Pushing changes ==="
-        
         git push https://${GITHUB_TOKEN}@github.com/1979447992/k8s-config-repo.git main
         
         echo "=== Kubernetes deployment updated successfully ==="
-
-
-
-
