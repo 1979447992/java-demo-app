@@ -15,7 +15,7 @@ public class DemoApplication {
 
     @GetMapping("/")
     public String hello() {
-        return "Hello DevOps Demo2015! Version: 1.0.1";
+        return "Hello DevOps Demo2256! Version: 1.0.1";
     }
 
     @GetMapping("/health")
