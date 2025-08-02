@@ -74,31 +74,33 @@ jobs:
         
         echo "=== Kubernetes deployment updated successfully ==="
 
-    - name: Trigger ArgoCD Refresh (Simple)
+
+    - name: Trigger ArgoCD Refresh
       run: |
-        echo "=== 调试 ArgoCD 连接 ==="
+        echo "=== 触发 ArgoCD 立即刷新 ==="
         
-        # 测试连接
-        echo "1. 测试 ArgoCD 健康状态："
-        curl -s -k "https://47.83.206.116:30443/healthz" || echo "健康检查失败"
-        
-        # 测试登录
-        echo "2. 测试登录："
-        LOGIN_RESPONSE=$(curl -s -k -X POST \
+        # 1. 获取 ArgoCD 登录令牌
+        ARGO_TOKEN=$(curl -s -k -X POST \
           -H 'Content-Type: application/json' \
-          -d "{\"username\":\"admin\",\"password\":\"${{ secrets.ARGOCD_PASSWORD }}\"}" \
-          'https://47.83.206.116:30443/api/v1/session')
+          -d '{"username":"admin","password":"${{ secrets.ARGOCD_PASSWORD }}"}' \
+          'https://47.83.206.116:30443/api/v1/session' | jq -r .token)
         
-        echo "登录响应: $LOGIN_RESPONSE"
-        
-        # 如果登录成功，尝试刷新
-        TOKEN=$(echo "$LOGIN_RESPONSE" | jq -r .token 2>/dev/null)
-        if [ "$TOKEN" != "null" ] && [ -n "$TOKEN" ]; then
-          echo "3. 尝试刷新应用："
-          curl -s -k -X POST \
-            -H "Authorization: Bearer $TOKEN" \
-            "https://47.83.206.116:30443/api/v1/applications/demo-app/refresh"
+        # 2. 检查令牌是否获取成功
+        if [ "$ARGO_TOKEN" == "null" ] || [ -z "$ARGO_TOKEN" ]; then
+          echo "错误：无法获取 ArgoCD 登录令牌。请检查密码和网络连接。"
+          exit 1
         fi
+        
+        echo "成功获取令牌，正在刷新应用..."
+    
+        # 3. 使用令牌和正确的Content-Type头来触发刷新
+        REFRESH_RESPONSE=$(curl -s -k -X POST \
+          -H "Authorization: Bearer $ARGO_TOKEN" \
+          -H "Content-Type: application/json" \
+          "https://47.83.206.116:30443/api/v1/applications/demo-app/refresh")
+          
+        echo "刷新API响应: $REFRESH_RESPONSE"
+        echo "ArgoCD 应用刷新触发成功。"
     
 
 
