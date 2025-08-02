@@ -53,7 +53,7 @@ jobs:
     - name: Update Kubernetes Deployment
       run: |
         echo "=== Cloning k8s config repository ==="
-        git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/1979447992/k8s-config-repo.git
+        git clone https://***@github.com/1979447992/k8s-config-repo.git
         cd k8s-config-repo
         
         echo "=== Configuring git ==="
@@ -61,22 +61,21 @@ jobs:
         git config user.email "actions@github.com"
         
         echo "=== Current deployment.yaml content ==="
-        pwd
-        ls -la
-        cat demo-app/deployment.yaml | grep -A 2 -B 2 "image:"  # 可选：显示更新前的镜像配置
+        cat demo-app/deployment.yaml | grep -A 2 -B 2 "image:"
         
         echo "=== Updating image tag in deployment.yaml ==="
-        sed -i "s|image: 47.83.206.116:30002/library/demo-app:.*|image: 47.83.206.116:30002/library/demo-app:${{ github.sha }}|g" deployment.yaml
+        sed -i "s|image: 47.83.206.116:30002/library/demo-app:.*|image: 47.83.206.116:30002/library/demo-app:dd96a51f3431f1b61ba92a954b247c6d59ba5060|g" demo-app/deployment.yaml
         
         echo "=== Updated deployment.yaml content ==="
-        cat deployment.yaml | grep -A 2 -B 2 "image:"  # 可选：显示更新后的镜像配置
+        cat demo-app/deployment.yaml | grep -A 2 -B 2 "image:"
         
         echo "=== Committing changes ==="
         git add .
-        git commit -m "Update demo-app image to ${{ github.sha }}"
+        git commit -m "Update demo-app image to dd96a51f3431f1b61ba92a954b247c6d59ba5060"
         
         echo "=== Pushing changes ==="
         git push origin main
         
         echo "=== Kubernetes deployment updated successfully ==="
+
 
