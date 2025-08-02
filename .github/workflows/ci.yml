@@ -79,10 +79,11 @@ jobs:
         echo "=== 触发 ArgoCD 立即刷新 ==="
         
         # 方法1：通过 ArgoCD API 刷新
-        curl -s -X GET "http://47.83.206.116:30080/api/v1/applications/demo-app/refresh" \
+        curl -s -X GET "http://47.83.206.116:30443/api/v1/applications/demo-app/refresh" \
           -H "Authorization: Bearer $(curl -s -X POST \
             -H 'Content-Type: application/json' \
             -d '{\"username\":\"admin\",\"password\":\"${{ secrets.ARGOCD_PASSWORD }}\"}' \
-            'http://47.83.206.116:30080/api/v1/session' | jq -r .token)" || echo "API 刷新失败，依赖自动扫描"
+            'http://47.83.206.116:30443/api/v1/session' | jq -r .token)" || echo "API 刷新失败，依赖自动扫描"
     
+
 
