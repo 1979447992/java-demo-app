@@ -27,7 +27,8 @@ jobs:
     
     - name: Push to Harbor
       run: |
-        docker login 47.83.206.116:30002 -u admin -p Harbor12345
+        #        docker login 47.83.206.116:30002 -u admin -p Harbor12345
+        docker login --insecure-registry 47.83.206.116:30002 -u admin -p Harbor12345
         docker push $IMAGE_TAG
     
     - name: Update deployment config
