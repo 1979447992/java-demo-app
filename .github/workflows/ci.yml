@@ -74,9 +74,11 @@ jobs:
         git commit -m "Update demo-app image to dd96a51f3431f1b61ba92a954b247c6d59ba5060"
         
         echo "=== Pushing changes ==="
-        git push origin main
+        
+        git push https://${GITHUB_TOKEN}@github.com/1979447992/k8s-config-repo.git main
         
         echo "=== Kubernetes deployment updated successfully ==="
+
 
 
 
