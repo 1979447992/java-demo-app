@@ -61,7 +61,9 @@ jobs:
         git config user.email "actions@github.com"
         
         echo "=== Current deployment.yaml content ==="
-        cat deployment.yaml | grep -A 2 -B 2 "image:"  # 可选：显示更新前的镜像配置
+        pwd
+        ls -la
+        cat demo-app/deployment.yaml | grep -A 2 -B 2 "image:"  # 可选：显示更新前的镜像配置
         
         echo "=== Updating image tag in deployment.yaml ==="
         sed -i "s|image: 47.83.206.116:30002/library/demo-app:.*|image: 47.83.206.116:30002/library/demo-app:${{ github.sha }}|g" deployment.yaml
@@ -77,3 +79,4 @@ jobs:
         git push origin main
         
         echo "=== Kubernetes deployment updated successfully ==="
+
