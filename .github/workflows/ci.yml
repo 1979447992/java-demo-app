@@ -74,14 +74,15 @@ jobs:
         
         echo "=== Kubernetes deployment updated successfully ==="
 
-    - name: Force ArgoCD Refresh
+    - name: Trigger ArgoCD Refresh (Simple)
       run: |
-        # 创建临时的 kubeconfig
-        echo "${{ secrets.KUBECONFIG_BASE64 }}" | base64 -d > /tmp/kubeconfig
-        export KUBECONFIG=/tmp/kubeconfig
+        echo "=== 触发 ArgoCD 立即刷新 ==="
         
-        # 强制刷新 ArgoCD 应用
-        kubectl annotate application demo-app -n argocd argocd.argoproj.io/refresh=hard --overwrite
-
-
+        # 方法1：通过 ArgoCD API 刷新
+        curl -s -X GET "http://47.83.206.116:30080/api/v1/applications/demo-app/refresh" \
+          -H "Authorization: Bearer $(curl -s -X POST \
+            -H 'Content-Type: application/json' \
+            -d '{\"username\":\"admin\",\"password\":\"${{ secrets.ARGOCD_PASSWORD }}\"}' \
+            'http://47.83.206.116:30080/api/v1/session' | jq -r .token)" || echo "API 刷新失败，依赖自动扫描"
+    
 
