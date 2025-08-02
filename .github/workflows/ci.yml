@@ -74,3 +74,14 @@ jobs:
         
         echo "=== Kubernetes deployment updated successfully ==="
 
+    - name: Force ArgoCD Refresh
+      run: |
+        # 创建临时的 kubeconfig
+        echo "${{ secrets.KUBECONFIG_BASE64 }}" | base64 -d > /tmp/kubeconfig
+        export KUBECONFIG=/tmp/kubeconfig
+        
+        # 强制刷新 ArgoCD 应用
+        kubectl annotate application demo-app -n argocd argocd.argoproj.io/refresh=hard --overwrite
+
+
+
