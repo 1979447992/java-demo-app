@@ -27,7 +27,11 @@ public class DemoApplication {
         String formattedNow = now.format(formatter);
         
         // 将原始字符串和当前时间拼接
+
         return "Hello DevOps Demo 1415! Version: 1.0.1 - 当前时间: " + formattedNow;
+
+
+
     }
 
     @GetMapping("/health")
