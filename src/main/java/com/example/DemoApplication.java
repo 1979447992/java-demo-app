@@ -5,6 +5,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 @SpringBootApplication
 @RestController
 public class DemoApplication {
@@ -15,6 +18,7 @@ public class DemoApplication {
 
     @GetMapping("/")
     public String hello() {
+
 
         // 获取当前时间
         LocalDateTime now = LocalDateTime.now();
@@ -27,12 +31,8 @@ public class DemoApplication {
         
         // 将原始字符串和当前时间拼接
 
-	
+        return "Hello DevOps Demo 2340! Version: 1.0.1 - 当前时间: " + formattedNow;
 
-
-
-
-        return "Hello DevOps Demo 2340! Version: 1.0.1";
 
     }
 
